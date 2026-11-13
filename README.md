@@ -26,5 +26,17 @@ PowerShell alternatifi: bu klasörde `python server.py` komutunu çalıştırın
 
 Eski yerel sipariş kayıtları varsa, bu sürüm onları silmez; sipariş özellikleri artık sitede sunulmaz.
 
+## Render’da yayınlama
+
+Bu proje Python sunucusu ve yönetim paneli çalıştırdığı için Render’da **Web Service** olarak yayınlanır; **Static Site** seçilmez.
+
+1. Projenin GitHub’daki `sanat-galerisi` deposunda `server.py`, `static/`, `uploads/` ve HTML dosyalarının bulunduğunu doğrulayın. `main` dalındaki değişiklikler Render’a otomatik dağıtılabilir.
+2. Render’da **New → Web Service** seçin, GitHub hesabınızı bağlayın ve `8yym57ckfp-droid/sanat-galerisi` deposunu seçin. Root Directory alanını boş bırakın.
+3. Build Command olarak `pip install -r requirements.txt`, Start Command olarak `python server.py` girin.
+4. Kalıcı eser ve görsel saklamak için ücretli Web Service’e bir disk bağlayın. Mount Path `/var/data` olsun ve Environment bölümüne `GALLERY_DATA_DIR=/var/data` ekleyin. Disk olmadan Render yeniden başlatma ve dağıtımlarında veriler silinebilir. Bu uygulama Render’ın verdiği `PORT` değerini ve dış bağlantı için `0.0.0.0` adresini otomatik kullanır.
+5. İlk dağıtım **Live** olduktan sonra sitenin adresini açın ve `/atolye-yonetim-8f31/setup` sayfasından en az 10 karakterli yönetici parolası belirleyin. Yönetim giriş adresi `/atolye-yonetim-8f31/login` olur.
+
+Yerel `data/site.sqlite3` ve `uploads/works/` GitHub’a dahil edilmez. Bu nedenle Render’daki ilk kurulumda mevcut yerel eser kataloğu otomatik aktarılmaz; yayınlandıktan sonra yönetim panelinden eserleri ve görsellerini yükleyin veya önce katalog verisini ayrıca taşıyın.
+
 GitHub Pages Python sunucusu ve SQLite çalıştırmadığından siteyi orada tek başına çalıştırmaz. Python destekli barındırma gerekir. Varsayılan `127.0.0.1:8000` adresi yalnızca bu bilgisayardan erişilir.
 
