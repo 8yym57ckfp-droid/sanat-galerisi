@@ -30,6 +30,7 @@ PowerShell alternatifi: bu klasörde `python server.py` komutunu çalıştırın
 - `data/site.sqlite3`: yönetici hesabı, eserler, ayarlar ve sipariş kayıtları. Bu dosyayı ve `uploads/` klasörünü düzenli yedekleyin.
 - `uploads/requests/`: müşteri referans görselleri. `uploads/works/`: tablo görselleri.
 - `static/siparis-ornek.jfif`: örnek özel sipariş görseli.
-- `legacy-homepage.html`: önceki tek dosyalı sitenin arşiv kopyası.
+- `legacy-homepage.html`: önceki tek dosyalı ana sayfanın özgün kopyasıdır ve sunucu ana sayfada aynen gösterir. Sipariş ve yönetim bağlantıları ana sayfanın üzerinde küçük bir kısayol şeridinde yer alır.
+- `index.html`: klasörü doğrudan açtığınızda sunucuyu nasıl başlatacağınızı gösterir. Sipariş sistemi için `start.bat` üzerinden sunucuyu çalıştırın.
 
 Site müşteriler tarafından internetten kullanılacaksa bu Python projesi Python çalıştırabilen bir sunucuya yüklenmelidir. GitHub Pages Python sunucusu ve SQLite çalıştırmadığı için sipariş sistemi orada tek başına çalışmaz. Barındırma adresine göre HTTPS, sunucu yedekleri ve `GALLERY_HOST`/`GALLERY_PORT` ayarlarını yapılandırın. Varsayılan adres yalnızca bu bilgisayardan erişilebilen `127.0.0.1:8000`'dır.

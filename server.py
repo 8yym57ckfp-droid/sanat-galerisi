@@ -143,6 +143,21 @@ def product_cards(rows):
     return "".join(artwork(row) for row in rows) or "<p class='empty'>Bu bölümde henüz eser yok.</p>"
 
 
+def render_legacy_home():
+    """Show the existing artwork homepage unchanged; expose new tools as a small overlay."""
+    return """<!doctype html><html lang='tr'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Perihan Baktaş | Sanat Atölyesi</title><style>
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}iframe{display:block;width:100%;height:100%;border:0;background:#fbf8f3}.quick-links{position:fixed;z-index:1000;right:18px;bottom:18px;display:flex;align-items:center;gap:7px;padding:8px;border:1px solid #eadfd6;border-radius:30px;background:#fffdf9ed;box-shadow:0 8px 28px #35261e24;backdrop-filter:blur(10px);font:600 12px Arial,sans-serif}.quick-links a{display:block;padding:9px 13px;border-radius:22px;color:#79546f;text-decoration:none;white-space:nowrap}.quick-links a:first-child{background:#486454;color:#fff}.quick-links a:hover{transform:translateY(-1px);background:#f4e9ed}.quick-links a:first-child:hover{background:#354d41}@media(max-width:600px){.quick-links{left:10px;right:10px;bottom:10px;justify-content:center;gap:2px}.quick-links a{font-size:11px;padding:9px 10px}}
+    </style></head><body><iframe id='legacy-home' src='/legacy-homepage.html' title='Perihan Baktaş sanat galerisi'></iframe><nav class='quick-links' aria-label='Sipariş bağlantıları'><a href='/ozel-siparis'>Özel Sipariş Oluştur</a><a href='/siparis-sorgula'>Sipariş Sorgula</a><a href='/admin'>Yönetim</a></nav><script>
+    (function(){var frame=document.getElementById('legacy-home');function sync(){try{var d=frame.contentDocument;if(!d)return;fetch('/api/products',{cache:'no-store'}).then(function(r){return r.json()}).then(function(data){var products=data.products||[],byCode=new Map(products.map(function(p){return[p.code,p]}));function fmt(n){return '₺'+Number(n||0).toLocaleString('tr-TR')}
+    function paint(card,p){if(!p||p.archived){card.hidden=true;return}card.hidden=false;var chip=card.querySelector('.chip');if(chip)chip.textContent=p.code;var title=card.querySelector('.ct .sf');if(title)title.textContent=p.title;var ct=card.querySelector('.ct');if(ct){var size=ct.querySelector('span:not(.pr)');if(size)size.textContent=p.size+(p.category?' · '+p.category:'');var price=ct.querySelector('.pr');if(price){price.replaceChildren();if(p.sale_price&&Number(p.sale_price)<Number(p.price)){var old=d.createElement('del');old.textContent=fmt(p.price);price.appendChild(old);price.appendChild(d.createTextNode(' '))}var current=d.createElement('b');current.textContent=fmt(p.sale_price&&Number(p.sale_price)<Number(p.price)?p.sale_price:p.price);price.appendChild(current)}var desc=ct.querySelector('.catalog-description');if(!desc){desc=d.createElement('span');desc.className='catalog-description';desc.style.cssText='display:block;margin-top:4px;color:#827783;font-size:11px;line-height:1.35';var actions=ct.querySelector('.card-actions');ct.insertBefore(desc,actions||null)}desc.textContent=p.description||'';var actions=ct.querySelector('.card-actions');if(actions){var inspect=actions.querySelector('.inspect-btn');if(p.sold){actions.replaceChildren();var sold=d.createElement('span');sold.className='btn g sold-tag';sold.textContent='Satıldı';actions.appendChild(sold)}else{actions.replaceChildren();var buy=d.createElement('a');buy.className='btn g';buy.href='#iletisim';buy.textContent='Satın Al';actions.appendChild(buy)}if(inspect){inspect.textContent='İncele';actions.appendChild(inspect)}else{var detail=d.createElement('button');detail.type='button';detail.className='btn inspect-btn';detail.textContent='İncele';actions.appendChild(detail)}}}var art=card.querySelector('.art');if(art&&p.image){var img=art.querySelector('img');if(!img){art.querySelectorAll('svg').forEach(function(x){x.remove()});img=d.createElement('img');img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';art.appendChild(img)}img.src='/'+p.image;img.alt=p.title}}
+    var cards=Array.from(d.querySelectorAll('.card')),templates=new Map();cards.forEach(function(card){var chip=card.querySelector('.chip');if(chip&&!templates.has(chip.textContent.trim()))templates.set(chip.textContent.trim(),card);var p=chip&&byCode.get(chip.textContent.trim());if(p)paint(card,p);else card.hidden=true});
+    var track=d.querySelector('.fw .ftt'),base=cards.find(function(x){return x.querySelector('.chip')});if(track&&base){var visible=products.filter(function(p){return !p.archived&&!p.sold}).sort(function(a,b){return Number(b.featured)-Number(a.featured)||a.id-b.id});var cycle=visible.concat(visible).map(function(p){var original=templates.get(p.code)||base;var clone=original.cloneNode(true);paint(clone,p);return clone});track.replaceChildren.apply(track,cycle)}
+    var soldGrid=d.querySelector('.sold-works-grid'),soldBase=soldGrid&&soldGrid.querySelector('.card');if(soldGrid&&soldBase){var soldItems=products.filter(function(p){return !p.archived&&p.sold});var soldCards=soldItems.map(function(p){var clone=(templates.get(p.code)||soldBase).cloneNode(true);paint(clone,p);return clone});soldGrid.replaceChildren.apply(soldGrid,soldCards)}
+    var cfg=data.settings||{};[['Instagram','instagram_url'],['TikTok','tiktok_url'],['Telegram','telegram_url'],['WhatsApp','whatsapp_url']].forEach(function(pair){if(!cfg[pair[1]])return;Array.from(d.querySelectorAll('a')).filter(function(a){return a.textContent.trim()===pair[0]||pair[0]==='WhatsApp'&&a.textContent.trim().indexOf('WhatsApp')===0}).forEach(function(a){a.href=cfg[pair[1]];a.target='_blank';a.rel='noopener'})})}).catch(function(){});}catch(e){}}
+    frame.addEventListener('load',sync);if(frame.contentDocument&&frame.contentDocument.readyState==='complete')sync()})();
+    </script></body></html>"""
+
+
 def input_field(label, name, value="", kind="text", required=False, extra=""):
     req = " required" if required else ""
     if kind == "textarea":
@@ -259,6 +274,29 @@ class SiteHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         query = parse_qs(parsed.query)
+        if path == "/legacy-homepage.html":
+            legacy = ROOT / "legacy-homepage.html"
+            data = legacy.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.end_headers()
+            self.wfile.write(data)
+            return
+        if path == "/api/products":
+            with connect() as c:
+                items = [dict(r) for r in c.execute("SELECT * FROM products ORDER BY id")]
+            cfg = settings()
+            public_settings = {k: cfg.get(k, "") for k in ("site_name", "whatsapp_url", "instagram_url", "tiktok_url", "telegram_url", "categories")}
+            payload = json.dumps({"products": items, "settings": public_settings}, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
         if path.startswith("/static/"):
             return self.static(path)
         if path.startswith("/uploads/"):
@@ -277,6 +315,8 @@ class SiteHandler(BaseHTTPRequestHandler):
                 return
             return self.send_error(404)
         if path == "/":
+            return self.send_html(render_legacy_home())
+        if path == "/new-home":
             category = query.get("kategori", [""])[0]
             sort = query.get("sirala", [""])[0]
             with connect() as c:
