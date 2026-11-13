@@ -23,8 +23,9 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote, urlencode, urlparse
 
 ROOT = Path(__file__).resolve().parent
-DB_PATH = ROOT / "data" / "site.sqlite3"
-UPLOADS = ROOT / "uploads"
+DATA_ROOT = Path(os.environ.get("GALLERY_DATA_DIR", str(ROOT))).expanduser()
+DB_PATH = DATA_ROOT / "data" / "site.sqlite3"
+UPLOADS = DATA_ROOT / "uploads"
 MAX_FILE = 8 * 1024 * 1024
 MAX_REQUEST = MAX_FILE + 256 * 1024
 ALLOWED_EXT = {".jpg", ".jpeg", ".jfif", ".png", ".webp"}
@@ -372,7 +373,7 @@ class SiteHandler(BaseHTTPRequestHandler):
             relative = path.removeprefix("/")
             if relative.startswith("uploads/requests/") and not self.get_admin():
                 return self.send_error(404)
-            file = (ROOT / relative).resolve()
+            file = (DATA_ROOT / relative).resolve()
             if file.is_relative_to(UPLOADS.resolve()) and file.is_file():
                 data = file.read_bytes()
                 self.send_response(200)
@@ -606,8 +607,8 @@ def admin_nav(active):
 
 if __name__ == "__main__":
     init_db()
-    host = os.environ.get("GALLERY_HOST", "127.0.0.1")
-    port = int(os.environ.get("GALLERY_PORT", "8000"))
+    host = os.environ.get("GALLERY_HOST", "0.0.0.0" if os.environ.get("PORT") else "127.0.0.1")
+    port = int(os.environ.get("PORT", os.environ.get("GALLERY_PORT", "8000")))
     print(f"Sanat Atölyesi is running at http://{host}:{port}")
     print("First visit: /atolye-yonetim-8f31/setup to create the administrator password.")
     ThreadingHTTPServer((host, port), SiteHandler).serve_forever()
