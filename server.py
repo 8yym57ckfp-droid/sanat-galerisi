@@ -201,4 +201,516 @@ def render_legacy_home():
     var arrow=e.target.closest('[data-featured-step]');if(arrow){e.preventDefault();e.stopImmediatePropagation();var track=d.querySelector('.fw .ftt'),cards=track&&track.querySelectorAll('.card');if(track&&cards&&cards.length){var copies=Math.max(1,Number(track.dataset.loopCopies)||1),count=Math.max(1,Math.floor(cards.length/copies));window.__adminSlide=((window.__adminSlide||0)+(Number(arrow.dataset.featuredStep)>0?1:-1)+count)%count;var root=track.closest('.fw');if(root)root.classList.add('is-manual');track.style.transition='transform .65s ease';track.style.transform='translateX(-'+(window.__adminSlide*(cards[0].getBoundingClientRect().width+24))+'px)'}}var tile=e.target.closest('.collection-tile[data-category]');if(tile){filter.category=tile.dataset.category;renderCatalog(d,window.__adminProducts||[],window.__adminTemplates||new Map());d.querySelector('#admin-live-catalog').scrollIntoView({behavior:'smooth',block:'start'})}},true);
     }
     function cardTemplate(d,p){var all=Array.from(d.querySelectorAll('.card')),found=all.find(function(x){var chip=x.querySelector('.chip');return chip&&chip.textContent.trim()===p.code});return found||all[0]}
-    function paint(d,card,p,cfg){card.hidden=false;card.dataset.productCode=p.code;var chip=card.querySelector('.chip');if(chip)chip.textContent=p.code;var title=card.querySelector('.ct .sf');if(title)title.textContent=p.title;var ct=card.querySelector('.ct');if(ct){var size=ct.querySelector('span:not(.pr)');if(size)size.textContent=p.size+(p.category?' · '+p.category:'');var price=ct.querySelector('.pr');if(price){price.replaceChildren();if(p.sale_price&&Number(p.sale_price)<Number(p.price)){var old=d.createElement('del');old.textContent=fmt(p.price);price.appendChild(old);price.appendChild(d.createTextNode(' '))}var current=d.createElement('b');current.textContent=fmt(p.sale_price&&Number(p.sale_price)<Number(p.price)?p.sale_price:p.price);price.appendChild(current)}var desc=ct.querySelector('.catalog-description');if(!desc){desc=d.createElement('span');desc.className='catalog-description';desc.style.cssText='display:block;margin:8px auto 12px;max-width:96%;color:#827783;font-size:11px;line-height:1.45;text-align:center;min-height:1.45em';var actions=ct.querySelector('.card-actions');ct.insertBefore(desc,actions||null)}desc.textContent=p.description||'';var actions=ct.querySelector('.card-actions');if(actions){actions.replaceChildren();if(p.sold){var sold=d.createElement('span');sold.className='btn g sold-tag';sold.textContent='Satıldı';actions.appendChild(sold)}else{var buy=d.createElement('a');buy.className='btn g';buy.href=p.whatsapp_url||cfg.whatsapp_url||'#iletisim';buy.textContent='Satın Al';if(buy.href.indexOf('http')===0){buy.target='_blank';buy.rel='noopener'}actions.appendChild(buy)}var inspect=d.createElement('button');inspect.type='button';inspect.className='btn inspect-btn';inspect.textContent='İncele';actions.appendChild(inspect)}}var art=card.querySelector('.art');if(art){if(p.image){var img=art.querySelector('
+    function paint(d,card,p,cfg){card.hidden=false;card.dataset.productCode=p.code;var chip=card.querySelector('.chip');if(chip)chip.textContent=p.code;var title=card.querySelector('.ct .sf');if(title)title.textContent=p.title;var ct=card.querySelector('.ct');if(ct){var size=ct.querySelector('span:not(.pr)');if(size)size.textContent=p.size+(p.category?' · '+p.category:'');var price=ct.querySelector('.pr');if(price){price.replaceChildren();if(p.sale_price&&Number(p.sale_price)<Number(p.price)){var old=d.createElement('del');old.textContent=fmt(p.price);price.appendChild(old);price.appendChild(d.createTextNode(' '))}var current=d.createElement('b');current.textContent=fmt(p.sale_price&&Number(p.sale_price)<Number(p.price)?p.sale_price:p.price);price.appendChild(current)}var desc=ct.querySelector('.catalog-description');if(!desc){desc=d.createElement('span');desc.className='catalog-description';desc.style.cssText='display:block;margin:8px auto 12px;max-width:96%;color:#827783;font-size:11px;line-height:1.45;text-align:center;min-height:1.45em';var actions=ct.querySelector('.card-actions');ct.insertBefore(desc,actions||null)}desc.textContent=p.description||'';var actions=ct.querySelector('.card-actions');if(actions){actions.replaceChildren();if(p.sold){var sold=d.createElement('span');sold.className='btn g sold-tag';sold.textContent='Satıldı';actions.appendChild(sold)}else{var buy=d.createElement('a');buy.className='btn g';buy.href=p.whatsapp_url||cfg.whatsapp_url||'#iletisim';buy.textContent='Satın Al';if(buy.href.indexOf('http')===0){buy.target='_blank';buy.rel='noopener'}actions.appendChild(buy)}var inspect=d.createElement('button');inspect.type='button';inspect.className='btn inspect-btn';inspect.textContent='İncele';actions.appendChild(inspect)}}var art=card.querySelector('.art');if(art){if(p.image){var img=art.querySelector('img');if(!img){art.replaceChildren();img=d.createElement('img');img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit';art.appendChild(img)}img.src='/'+p.image;img.alt=p.title}else if(art.querySelector('img')){art.querySelector('img').remove()}}ensureLikeRow(d,card,p.code)}
+    function fmt(n){return '₺'+Number(n||0).toLocaleString('tr-TR')}
+    function renderCatalog(d,products,templates){var active=products.filter(function(p){return !p.archived&&p.published!==false}),grid=d.querySelector('#admin-live-catalog .admin-catalog-grid');if(!grid)return;var rows=active.filter(function(p){if(filter.category&&p.category!==filter.category)return false;var amount=Number(p.sale_price&&Number(p.sale_price)<Number(p.price)?p.sale_price:p.price);if(filter.price==='under')return amount<3000;if(filter.price==='middle')return amount>=3000&&amount<4000;if(filter.price==='high')return amount>=4000;return true});rows.sort(function(a,b){if(filter.sort==='low')return Number(a.sale_price||a.price)-Number(b.sale_price||b.price);if(filter.sort==='high')return Number(b.sale_price||b.price)-Number(a.sale_price||a.price);if(filter.sort==='name')return a.title.localeCompare(b.title,'tr');return b.id-a.id});var base=templates.values().next().value||d.querySelector('.card');if(base)grid.replaceChildren.apply(grid,rows.map(function(p){var clone=(templates.get(p.code)||base).cloneNode(true);paint(d,clone,p,window.__adminSettings||{});return clone}))}
+    function sync(){try{var d=frame.contentDocument;if(!d||busy)return;install(d);busy=true;fetch('/api/products',{cache:'no-store'}).then(function(r){if(!r.ok)throw Error('catalog');return r.json()}).then(function(data){var products=data.products||[],cfg=data.settings||{},active=products.filter(function(p){return !p.archived&&!p.sold&&p.published!==false}),featured=active.filter(function(p){return !!p.featured}).sort(function(a,b){return b.id-a.id}),soldItems=products.filter(function(p){return !p.archived&&!!p.sold&&p.published!==false}).sort(function(a,b){return b.id-a.id}),templates=new Map();Array.from(d.querySelectorAll('.card')).forEach(function(c){var chip=c.querySelector('.chip');if(chip&&!templates.has(chip.textContent.trim()))templates.set(chip.textContent.trim(),c)});window.__adminProducts=products;window.__adminTemplates=templates;window.__adminSettings=cfg;
+    var ft=d.querySelector('.fw .ftt'),fallback=d.querySelector('.card');if(ft&&fallback){var viewport=ft.parentElement,cardWidth=(templates.get(featured[0]&&featured[0].code)||fallback).getBoundingClientRect().width||260,gap=24,needsLoop=featured.length>0&&featured.length*(cardWidth+gap)-gap>(viewport?viewport.clientWidth:window.innerWidth),cycle=needsLoop?featured.concat(featured):featured.slice();var featuredSignature=featured.map(function(p){return p.code}).join('|')+'|'+(needsLoop?'loop':'static');ft.dataset.loopCopies=needsLoop?'2':'1';var featuredRoot=ft.closest('.fw');if(featuredRoot)featuredRoot.classList.toggle('is-static',!needsLoop);if(ft.dataset.featuredSignature!==featuredSignature){ft.dataset.featuredSignature=featuredSignature;ft.replaceChildren.apply(ft,cycle.map(function(p){var card=(templates.get(p.code)||fallback).cloneNode(true);paint(d,card,p,cfg);return card}));ft.style.setProperty('animation',needsLoop?'':'none','important');ft.style.transform='';if(!featured.length)ft.innerHTML='<p style="padding:24px;color:#827783">Yönetim panelinden öne çıkarılan eserler burada görünür.</p>'}
+    var arrivals=d.querySelector('#yeni-gelenler .editorial-grid');if(arrivals){var fresh=active.filter(function(p){return !!p.show_new}).sort(function(a,b){return b.id-a.id});arrivals.replaceChildren.apply(arrivals,fresh.map(function(p){var c=(templates.get(p.code)||fallback).cloneNode(true);paint(d,c,p,cfg);return c}));arrivals.parentElement.hidden=!fresh.length}
+    var collectionTiles=d.querySelector('#koleksiyonlar .collection-grid'),collectionGrid=d.querySelector('#koleksiyonlar .collection-art-grid');if(collectionTiles&&!collectionGrid){collectionGrid=d.createElement('div');collectionGrid.className='editorial-grid collection-art-grid';collectionGrid.setAttribute('aria-label','Koleksiyon eserleri');collectionTiles.insertAdjacentElement('afterend',collectionGrid)}var collectionWorks=active.filter(function(p){return !!p.show_collections}).sort(function(a,b){return b.id-a.id});if(collectionGrid){collectionGrid.replaceChildren.apply(collectionGrid,collectionWorks.map(function(p){var c=(templates.get(p.code)||fallback).cloneNode(true);paint(d,c,p,cfg);return c}));collectionGrid.hidden=!collectionWorks.length}
+    var curated=d.querySelector('#sanatcinin-secimi .curated-grid');if(curated){var picks=active.filter(function(p){return !!p.show_curated}).sort(function(a,b){return b.id-a.id});curated.replaceChildren.apply(curated,picks.map(function(p){var c=(templates.get(p.code)||fallback).cloneNode(true);paint(d,c,p,cfg);return c}));curated.parentElement.hidden=!picks.length}
+    var soldGrid=d.querySelector('#sold-works-grid');if(soldGrid){soldGrid.classList.add('sold-works-grid');soldGrid.replaceChildren.apply(soldGrid,soldItems.map(function(p){var c=(templates.get(p.code)||fallback).cloneNode(true);paint(d,c,p,cfg);return c}));soldGrid.parentElement.hidden=!soldItems.length}
+    var cats=Array.from(new Set((cfg.categories||'').split(',').map(function(x){return x.trim()}).filter(Boolean).concat(products.map(function(p){return(p.category||'').trim()}).filter(Boolean))));var allCategory=d.querySelector('#all-works-category');if(allCategory){var previous=filter.category;allCategory.replaceChildren.apply(allCategory,[new Option('Tüm kategoriler','')].concat(cats.map(function(x){return new Option(x,x)})));allCategory.value=cats.indexOf(previous)>=0?previous:'';filter.category=allCategory.value}var categoryMenu=Array.from(d.querySelectorAll('.admin-filter-menu details')).find(function(x){return x.querySelector('summary')&&x.querySelector('summary').dataset.menuLabel==='Kategori'});if(categoryMenu){var list=categoryMenu.querySelector('[data-menu]');list.replaceChildren();[['','Tümü']].concat(cats.map(function(x){return[x,x]})).forEach(function(entry){var b=d.createElement('button');b.type='button';b.dataset.filterValue=entry[0];b.textContent=entry[1];list.appendChild(b)})}Array.from(d.querySelectorAll('#koleksiyonlar .collection-tile')).forEach(function(tile,i){var category=cats[i];if(!category){tile.hidden=true;return}tile.hidden=false;tile.dataset.category=category;tile.href='#admin-live-catalog';var label=tile.querySelector('span'),heading=tile.querySelector('h3'),copy=tile.querySelector('p');if(label)label.textContent=('0'+(i+1)).slice(-2)+' · '+category.toLocaleUpperCase('tr');if(heading)heading.textContent=category;if(copy)copy.textContent='Bu kategorideki '+active.filter(function(p){return p.category===category}).length+' eseri koleksiyonda görüntüleyin.'});
+    var menus=Array.from(d.querySelectorAll('.admin-filter-menu details'));menus.forEach(function(menu){var s=menu.querySelector('summary'),list=menu.querySelector('[data-menu]');if(!s||!list||s.dataset.menuLabel==='Kategori')return;var opts=s.dataset.menuLabel==='Fiyat'?[['','Tüm fiyatlar'],['under','₺3.000 altı'],['middle','₺3.000–₺4.000'],['high','₺4.000 üzeri']]:[['new','En yeni'],['low','Fiyat: düşükten yükseğe'],['high','Fiyat: yüksekten düşüğe'],['name','Ada göre']];list.replaceChildren.apply(list,opts.map(function(entry){var b=d.createElement('button');b.type='button';b.dataset.filterValue=entry[0];b.textContent=entry[1];return b}))});
+    var brand=d.querySelector('.brand small');if(brand)brand.textContent='EL YAPIMI TABLOLAR · '+(cfg.site_name||'Perihan Baktaş');var name=d.querySelector('#hakkimda .sc[style*="font-size:40px"]');if(name)name.textContent=cfg.site_name||'Perihan Baktaş';d.title=(cfg.site_name||'Perihan Baktaş')+' | Sanat Atölyesi';[['Instagram','instagram_url'],['TikTok','tiktok_url'],['Telegram','telegram_url'],['WhatsApp','whatsapp_url']].forEach(function(pair){var url=cfg[pair[1]];if(!url)return;Array.from(d.querySelectorAll('a')).filter(function(a){return a.textContent.trim()===pair[0]}).forEach(function(a){a.href=url;a.target='_blank';a.rel='noopener'})});renderCatalog(d,products,templates);
+    var sig=JSON.stringify([products.map(function(p){return[p.id,p.code,p.title,p.size,p.price,p.sale_price,p.category,p.description,p.image,p.whatsapp_url,p.featured,p.sold,p.archived,p.show_new,p.show_collections,p.show_curated]}),cfg]);if(sig!==lastSignature){lastSignature=sig;window.__adminSlide=0;if(ft){ft.style.transform='';ft.style.animation='';}}}).catch(function(){}).finally(function(){busy=false})}catch(e){busy=false}}
+    frame.addEventListener('load',function(){sync();setInterval(sync,2500);try{frame.contentWindow.addEventListener('resize',sync)}catch(e){}});if(frame.contentDocument&&frame.contentDocument.readyState==='complete'){sync();setInterval(sync,2500)}})();
+    </script></body></html>"""
+
+
+def input_field(label, name, value="", kind="text", required=False, extra=""):
+    req = " required" if required else ""
+    if kind == "textarea":
+        control = f"<textarea name='{name}' {req} {extra}>{esc(value)}</textarea>"
+    else:
+        control = f"<input name='{name}' type='{kind}' value='{esc(value)}' {req} {extra}>"
+    return f"<label>{label}{control}</label>"
+
+
+class SiteHandler(BaseHTTPRequestHandler):
+    server_version = "SanatAtolyesi/1.0"
+
+    def log_message(self, fmt, *args):
+        print(f"{self.address_string()} - {fmt % args}")
+
+    def send_html(self, body, status=200, headers=None):
+        data = body.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        for k, v in headers or []:
+            self.send_header(k, v)
+        self.end_headers()
+        self.wfile.write(data)
+
+    def send_json(self, payload, status=200):
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def redirect(self, location, headers=None):
+        self.send_response(303)
+        self.send_header("Location", location)
+        self.send_header("Content-Length", "0")
+        for k, v in headers or []:
+            self.send_header(k, v)
+        self.end_headers()
+
+    def static(self, urlpath):
+        relative = urlpath.removeprefix("/static/")
+        path = (ROOT / "static" / relative).resolve()
+        if not path.is_relative_to((ROOT / "static").resolve()) or not path.is_file():
+            self.send_error(404)
+            return
+        data = path.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", mimetypes.guess_type(path.name)[0] or "application/octet-stream")
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def upload_file(self, fileitem, folder, prefix):
+        if not fileitem or not fileitem["filename"]:
+            return ""
+        filename = Path(fileitem["filename"]).name
+        ext = Path(filename).suffix.lower()
+        data = fileitem["data"]
+        if ext not in ALLOWED_EXT or not data or len(data) > MAX_FILE:
+            raise ValueError("Görsel JPG, PNG veya WEBP olmalı ve 8 MB sınırını aşmamalı.")
+        if not (data.startswith(b"\xff\xd8\xff") or data.startswith(b"\x89PNG\r\n\x1a\n") or (data.startswith(b"RIFF") and data[8:12] == b"WEBP")):
+            raise ValueError("Dosyanın içeriği geçerli bir JPG, PNG veya WEBP görseli değil.")
+        name = prefix + uuid.uuid4().hex + ext
+        target = UPLOADS / folder / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        return f"uploads/{folder}/{name}"
+
+    def parse_form(self):
+        length = int(self.headers.get("Content-Length", "0"))
+        if length > MAX_REQUEST:
+            raise ValueError("İstek boyutu çok büyük.")
+        body = self.rfile.read(length)
+        ctype = self.headers.get("Content-Type", "")
+        if ctype.lower().startswith("multipart/form-data"):
+            message = BytesParser(policy=policy.default).parsebytes(b"Content-Type: " + ctype.encode() + b"\r\nMIME-Version: 1.0\r\n\r\n" + body)
+            fields, files = {}, {}
+            for part in message.iter_parts():
+                name = part.get_param("name", header="content-disposition")
+                if not name:
+                    continue
+                payload = part.get_payload(decode=True) or b""
+                filename = part.get_filename()
+                if filename:
+                    files[name] = {"filename": filename, "data": payload}
+                else:
+                    fields[name] = payload.decode("utf-8", "replace")
+            return fields, files
+        parsed = parse_qs(body.decode("utf-8", "replace"), keep_blank_values=True)
+        return {k: v[-1] for k, v in parsed.items()}, {}
+
+    def get_admin(self):
+        raw = self.headers.get("Cookie", "")
+        value = next((x.strip().split("=", 1)[1] for x in raw.split(";") if x.strip().startswith("gallery_admin=")), "")
+        try:
+            payload, sig = value.split(".", 1)
+            secret = settings()["session_secret"]
+            expected = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
+            data = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+            if hmac.compare_digest(sig, expected) and data.get("exp", 0) > time.time() and data.get("id") == 1:
+                return data
+        except Exception:
+            pass
+        return None
+
+    def require_admin(self):
+        data = self.get_admin()
+        if data:
+            return data
+        self.redirect("/atolye-yonetim-8f31/login")
+        return None
+
+    def csrf_ok(self, fields):
+        return bool(self.get_admin() and hmac.compare_digest(str(fields.get("csrf", "")), settings().get("csrf_token", "")))
+
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parse_qs(parsed.query)
+        if path == "/legacy-homepage.html":
+            legacy = ROOT / "legacy-homepage.html"
+            data = legacy.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.end_headers()
+            self.wfile.write(data)
+            return
+        if path == "/api/products":
+            with connect() as c:
+                items = [dict(r) for r in c.execute("SELECT * FROM products ORDER BY id")]
+                for item in items:
+                    item["published"] = not item.get("publish_at") or item["publish_at"] <= date.today().isoformat()
+            cfg = settings()
+            public_settings = {k: cfg.get(k, "") for k in ("site_name", "whatsapp_url", "instagram_url", "tiktok_url", "telegram_url", "categories")}
+            payload = json.dumps({"products": items, "settings": public_settings}, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+            return
+        if path == "/api/likes":
+            visitor = query.get("visitor", [""])[0]
+            if not re.fullmatch(r"[a-f0-9-]{16,64}", visitor):
+                visitor = ""
+            with connect() as c:
+                rows = c.execute("""
+                    SELECT p.code, COUNT(l.visitor_id) AS count,
+                    MAX(CASE WHEN l.visitor_id=? THEN 1 ELSE 0 END) AS liked
+                    FROM products p LEFT JOIN product_likes l ON l.product_id=p.id
+                    WHERE p.archived=0 GROUP BY p.id ORDER BY p.id
+                """, (visitor,)).fetchall()
+            return self.send_json({"likes": {r["code"]: {"count": r["count"], "liked": bool(r["liked"])} for r in rows}})
+        if path.startswith("/static/"):
+            return self.static(path)
+        if path.startswith("/uploads/"):
+            relative = path.removeprefix("/")
+            if relative.startswith("uploads/requests/") and not self.get_admin():
+                return self.send_error(404)
+            file = (ROOT / relative).resolve()
+            if file.is_relative_to(UPLOADS.resolve()) and file.is_file():
+                data = file.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", mimetypes.guess_type(file.name)[0] or "application/octet-stream")
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            return self.send_error(404)
+        if path == "/":
+            return self.send_html(render_legacy_home())
+        if path == "/new-home":
+            category = query.get("kategori", [""])[0]
+            sort = query.get("sirala", [""])[0]
+            with connect() as c:
+                sql = "SELECT * FROM products WHERE archived=0 AND sold=0 AND (publish_at='' OR publish_at<=?)"
+                args = [date.today().isoformat()]
+                if category:
+                    sql += " AND category=?"; args.append(category)
+                order = "created_at DESC"
+                if sort == "fiyat-artan": order = "COALESCE(sale_price,price) ASC"
+                elif sort == "fiyat-azalan": order = "COALESCE(sale_price,price) DESC"
+                rows = c.execute(sql + " ORDER BY featured DESC," + order, args).fetchall()
+                featured = c.execute("SELECT * FROM products WHERE archived=0 AND sold=0 AND featured=1 AND (publish_at='' OR publish_at<=?) ORDER BY id DESC LIMIT 8", (date.today().isoformat(),)).fetchall()
+                sold = c.execute("SELECT * FROM products WHERE archived=0 AND sold=1 AND (publish_at='' OR publish_at<=?) ORDER BY id DESC", (date.today().isoformat(),)).fetchall()
+            cats = [x.strip() for x in settings().get("categories", "").split(",") if x.strip()]
+            select = "".join(f"<option {'selected' if category == x else ''} value='{esc(x)}'>{esc(x)}</option>" for x in cats)
+            hero = "<section class='hero'><div class='hero-copy'><span class='eyebrow'>EL YAPIMI · ÖZGÜN ESERLER</span><h1>Sanatla Dolu<br><em>Huzurlu Bir Bahar</em></h1><p>İlkbaharın sakinliği, fırçanın dokunuşuyla duvarınıza gelsin. Her eser kendine özgü bir renk ve hikâye taşır.</p><a class='button' href='#eserler'>Eserleri Keşfet</a><a class='button ghost' href='/ozel-siparis'>Özel Sipariş Oluştur</a></div><div class='hero-art'><div class='hero-canvas'><span>✿</span><span>✿</span><span>✿</span><span>✿</span></div><small>Perihan Baktaş · Atölyeden</small></div></section>"
+            content = hero
+            if featured:
+                content += f"<section class='section'><div class='section-heading'><span class='eyebrow'>ATÖLYEDEN SEÇKİ</span><h2>Öne Çıkan Eserler</h2><p>Sanatın en özel parçalarını keşfedin.</p></div><div class='carousel'><button class='carousel-arrow' type='button' data-carousel='prev' aria-label='Önceki eserler'>‹</button><div class='product-grid carousel-track'>{product_cards(featured)}</div><button class='carousel-arrow' type='button' data-carousel='next' aria-label='Sonraki eserler'>›</button></div></section>"
+            content += f"<section class='section' id='eserler'><div class='section-heading'><span class='eyebrow'>ÖZGÜN ÇALIŞMALAR</span><h2>Eser Koleksiyonu</h2><p>Size yakın renkleri ve manzaraları seçin.</p></div><form class='filters' method='get'><label>Kategori<select name='kategori'><option value=''>Tüm kategoriler</option>{select}</select></label><label>Sırala<select name='sirala'><option value=''>Öne çıkanlar</option><option value='fiyat-artan' {'selected' if sort=='fiyat-artan' else ''}>Fiyat: düşükten yükseğe</option><option value='fiyat-azalan' {'selected' if sort=='fiyat-azalan' else ''}>Fiyat: yüksekten düşüğe</option></select></label><button class='button small'>Uygula</button></form><div class='product-grid'>{product_cards(rows)}</div></section>"
+            if sold:
+                content += f"<section class='section sold-section'><div class='section-heading'><span class='eyebrow'>YENİ SAHİPLERİNE ULAŞTILAR</span><h2>Satılan Eserler</h2><p>Sahiplerine ulaşmış güzel parçalar.</p></div><div class='product-grid'>{product_cards(sold)}</div></section>"
+            content += "<section class='custom-banner'><div><span class='eyebrow'>SİZE ÖZEL HAZIRLANSIN</span><h2>Aklınızdaki tabloyu<br>birlikte tasarlayalım.</h2><p>Referans görselinizi yükleyin, notunuzu ekleyin; size fiyat ve tahmini süreyle dönelim.</p><a class='button' href='/ozel-siparis'>Özel Sipariş Oluştur</a></div><img src='/static/siparis-ornek.jfif' alt='Özel sipariş için örnek referans görseli'></section>"
+            content += "<section id='hakkimda' class='about'><span class='eyebrow'>ATÖLYEDEN BİR NOT</span><h2>Her Eserde Bir Bahar Hikâyesi</h2><p>Perihan Baktaş’ın el yapımı eserleri; çiçeklerin, doğanın ve mevsimlerin renklerinden ilham alır.</p></section>"
+            return self.send_html(render("Ana Sayfa", content))
+        if path == "/ozel-siparis":
+            content = f"""<section class='page-intro'><span class='eyebrow'>SİZE ÖZEL HAZIRLANSIN</span><h1>Özel Sipariş Oluştur</h1><p>İstediğiniz eseri anlatan bir görsel yükleyin. Notunuzu ve iletişim bilginizi ekleyin; size fiyat ve tahmini süre teklifi hazırlayalım.</p></section><section class='form-layout'><div class='form-card'><form method='post' enctype='multipart/form-data' action='/ozel-siparis'><label>Referans görseli <input type='file' name='image' accept='.jpg,.jpeg,.jfif,.png,.webp' required><small>JPG, PNG veya WEBP · en fazla 8 MB</small></label><div class='image-preview' data-preview><span>Görsel önizlemesi</span><img alt='Yüklenen görsel önizlemesi'></div><div class='form-grid'><label>Ad<input name='first_name' maxlength='80' autocomplete='given-name' required></label><label>Soyad<input name='last_name' maxlength='80' autocomplete='family-name' required></label><label class='span-2'>Telefon numarası<div class='phone-field'><select id='phone-country' name='dial_code' required></select><input name='phone_number' type='tel' inputmode='tel' autocomplete='tel-national' placeholder='5xx xxx xx xx' maxlength='24' required></div></label><label class='span-2'>Açık adres<input name='address' autocomplete='street-address' maxlength='240' required></label><label>Şehir<input name='city' autocomplete='address-level2' maxlength='100' required></label><label>Ülke<select id='address-country' name='country' autocomplete='country-name' required></select></label><label>Posta kodu<input name='postal_code' autocomplete='postal-code' maxlength='24' required></label></div>{input_field('Notunuz (renk, ölçü, konu veya başka istekleriniz)', 'note', kind='textarea', extra="maxlength='2000' rows='5'")}<button class='button wide'>Sipariş Talebi Oluştur</button><small>Talebiniz yönetim paneline düşer. Teklif hazırlandığında referans kodunuzla sorgulayabilirsiniz.</small></form></div><aside class='reference-card'><img src='/static/siparis-ornek.jfif' alt='Örnek sipariş görseli'><span class='eyebrow'>ÖRNEK REFERANS</span><h2>Nasıl çalışır?</h2><ol><li>Görselinizi ve notunuzu gönderin.</li><li>Size özel fiyat ve süre teklifini bekleyin.</li><li>Referans kodunuzla teklifi görüntüleyip onaylayın.</li></ol></aside></section><script src='/static/phone-countries.js' defer></script>"""
+            return self.send_html(render("Özel Sipariş", content))
+        if path == "/siparis-sorgula":
+            ref = (query.get("kod", [""])[0] or "").upper().strip()
+            content = "<section class='page-intro'><span class='eyebrow'>SİPARİŞİNİZİ TAKİP EDİN</span><h1>Sipariş Sorgula</h1><p>Talep oluştururken aldığınız referans kodunu girin.</p></section><section class='narrow form-card'><form method='get' action='/siparis-sorgula'><label>Sipariş referans kodu<input name='kod' value='" + esc(ref) + "' placeholder='PB-AB12CD' required></label><button class='button wide'>Siparişi Sorgula</button></form>"
+            if ref:
+                with connect() as c: order = c.execute("SELECT * FROM custom_orders WHERE ref=?", (ref,)).fetchone()
+                if not order:
+                    content += "<div class='notice error'>Bu kodla eşleşen bir sipariş bulunamadı. Kodu kontrol edip tekrar deneyin.</div>"
+                else:
+                    status_map = {'new':'İnceleniyor','quoted':'Onayınızı bekliyor','countered':'Karşı teklifiniz inceleniyor','accepted':'Siparişiniz onaylandı','declined':'Teklif reddedildi'}
+                    content += f"<div class='order-result'><span class='badge status-{esc(order['status'])}'>{esc(order['ref'])}</span><h2>{esc({'new':'Talebiniz alındı','quoted':'Teklifiniz hazır','countered':'Karşı teklifiniz alındı','accepted':'Siparişiniz onaylandı','declined':'Teklif reddedildi'}.get(order['status'],'Talep durumu'))}</h2><p>Durum: <span class='badge status-{esc(order['status'])}'>{esc(status_map.get(order['status'],'Talep durumu'))}</span></p><p>Talep tarihi: {esc(order['created_at'])}</p>"
+                    if order["status"] == "quoted":
+                        content += f"<div class='offer'><span>Teklif edilen fiyat</span><b>{money(order['offered_price'])}</b><span>Tahmini hazırlık süresi</span><b>{int(order['offered_days'])} gün</b></div><p>Teklif size uygun değilse kendi fiyat teklifinizi iletebilirsiniz.</p><form class='counteroffer-form' method='post' action='/siparis-sorgula/{quote(ref)}/counteroffer'><label>Önerdiğiniz fiyat (₺)<input type='number' name='counter_price' min='1' max='100000000' required></label><label>Kısa not (isteğe bağlı)<input type='text' name='counter_note' maxlength='500' placeholder='Bütçeniz veya açıklamanız'></label><button class='button ghost'>Karşı Teklif Gönder</button></form><p>Teklifi kabul ettiğinizde siparişiniz üretim sırasına alınır.</p><form class='inline-form' method='post' action='/siparis-sorgula/{quote(ref)}/kabul'><button class='button'>Siparişi Oluşturmaya Devam Et</button></form><form class='inline-form' method='post' action='/siparis-sorgula/{quote(ref)}/reddet'><button class='button ghost'>Teklifi Reddet</button></form>"
+                    elif order["status"] == "countered":
+                        content += f"<div class='offer'><span>Atölye teklifi</span><b>{money(order['offered_price'])}</b><span>Gönderdiğiniz karşı teklif</span><b>{money(order['counter_price'])}</b><span>Tahmini hazırlık süresi</span><b>{int(order['offered_days'])} gün</b></div><p>Karşı teklifiniz atölye tarafından inceleniyor.</p>"
+                    elif order["status"] == "accepted":
+                        wa = safe_url(settings().get("whatsapp_url"))
+                        next_link = f"<a class='button' href='{esc(wa)}' target='_blank' rel='noopener'>Atölyeyle İletişime Geç</a>" if wa else "<p>Atölye sizinle paylaştığınız iletişim bilgisi üzerinden iletişime geçecektir.</p>"
+                        content += f"<div class='offer'><span>Onaylanan fiyat</span><b>{money(order['offered_price'])}</b><span>Tahmini hazırlık süresi</span><b>{int(order['offered_days'])} gün</b></div><p>Siparişiniz oluşturulmaya devam ediyor.</p>{next_link}"
+                    elif order["status"] == "new": content += "<p>Fiyat ve hazırlık süresi atölye tarafından belirlendiğinde burada görüntülenecek.</p>"
+                    else: content += "<p>Yeni bir özel sipariş talebi oluşturabilirsiniz.</p>"
+                    content += "</div>"
+            content += "</section>"
+            return self.send_html(render("Sipariş Sorgula", content))
+        if path == "/arsiv":
+            with connect() as c: rows = c.execute("SELECT * FROM products WHERE archived=1 ORDER BY created_at DESC").fetchall()
+            content = f"<section class='page-intro'><span class='eyebrow'>ATÖLYE KAYITLARI</span><h1>Eser Arşivi</h1><p>Arşive alınan eserler bu listede saklanır.</p></section><div class='product-grid'>{product_cards(rows)}</div>"
+            return self.send_html(render("Eser Arşivi", content))
+        if path in ("/atolye-yonetim-8f31", "/atolye-yonetim-8f31/"):
+            return self.redirect("/atolye-yonetim-8f31/orders" if self.get_admin() else "/atolye-yonetim-8f31/login")
+        if path == "/atolye-yonetim-8f31/setup":
+            with connect() as c: exists = c.execute("SELECT 1 FROM admin WHERE id=1").fetchone()
+            if exists: return self.redirect("/atolye-yonetim-8f31/login")
+            content = "<section class='page-intro'><span class='eyebrow'>İLK KURULUM</span><h1>Yönetici Parolası Oluştur</h1><p>Bu panel yalnızca sizin belirleyeceğiniz parola ile açılır. En az 10 karakter kullanın.</p></section><section class='narrow form-card'><form method='post' action='/atolye-yonetim-8f31/setup'><label>Yeni parola<input type='password' name='password' minlength='10' required></label><label>Parolayı doğrula<input type='password' name='confirm' minlength='10' required></label><button class='button wide'>Yönetici Hesabı Oluştur</button></form></section>"
+            return self.send_html(render("İlk Kurulum", content))
+        if path == "/atolye-yonetim-8f31/login":
+            content = "<section class='page-intro'><span class='eyebrow'>YÖNETİM PANELİ</span><h1>Yönetici Girişi</h1><p>Atölye yönetimine devam etmek için giriş yapın.</p></section><section class='narrow form-card'><form method='post' action='/atolye-yonetim-8f31/login'><label>Parola<input type='password' name='password' required autofocus></label><button class='button wide'>Giriş Yap</button></form></section>"
+            with connect() as c: exists = c.execute("SELECT 1 FROM admin WHERE id=1").fetchone()
+            return self.send_html(render("Yönetici Girişi", content + ("" if exists else "<p class='center'><a href='/atolye-yonetim-8f31/setup'>İlk yönetici parolasını oluştur</a></p>")))
+        if not path.startswith("/atolye-yonetim-8f31/"):
+            return self.send_error(404)
+        admin = self.require_admin()
+        if not admin: return
+        csrf = esc(admin["csrf"])
+        if path == "/atolye-yonetim-8f31/logout":
+            return self.redirect("/atolye-yonetim-8f31/login", [("Set-Cookie", "gallery_admin=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0")])
+        if path == "/atolye-yonetim-8f31/orders":
+            with connect() as c: rows = c.execute("SELECT * FROM custom_orders ORDER BY CASE status WHEN 'new' THEN 0 WHEN 'countered' THEN 1 WHEN 'quoted' THEN 2 ELSE 3 END,created_at DESC").fetchall()
+            blocks = []
+            for o in rows:
+                status = {"new":"Yeni talep", "quoted":"Teklif bekliyor", "countered":"Karşı teklif geldi", "accepted":"Onaylandı", "declined":"Reddedildi"}.get(o["status"],o["status"])
+                photo = f"<a href='/{esc(o['image'])}' target='_blank'><img class='admin-thumb' src='/{esc(o['image'])}' alt='Sipariş görseli'></a>"
+                quote_form = f"<form method='post' action='/atolye-yonetim-8f31/orders/{quote(o['ref'])}/quote' class='quote-form'><input type='hidden' name='csrf' value='{csrf}'><label>Fiyat (₺)<input type='number' min='1' name='price' value='{esc(o['offered_price'] or '')}' required></label><label>Süre (gün)<input type='number' min='1' name='days' value='{esc(o['offered_days'] or '')}' required></label><button class='button small'>Teklifi Kaydet / Güncelle</button></form>" if o["status"] not in ("accepted", "declined") else ""
+                address = " · ".join(x for x in (o['address'],o['city'],o['country'],o['postal_code']) if x)
+                counter = f"<div class='counteroffer-box'><b>Müşteri karşı teklifi: {money(o['counter_price'])}</b><p>{esc(o['counter_note']) or 'Ek not yok.'}</p></div>" if o['counter_price'] else ""
+                blocks.append(f"<article class='admin-order'>{photo}<div class='order-details'><div class='row-between'><span class='badge status-{esc(o['status'])}'>{esc(status)}</span><b>{esc(o['ref'])}</b></div><h3>{esc(o['customer_name'])}</h3><p>{esc(o['contact'])}</p><p>{esc(address) or 'Adres belirtilmedi.'}</p><p>{esc(o['note']) or 'Not eklenmedi.'}</p>{counter}<small>Oluşturulma: {esc(o['created_at'])}</small>{quote_form}</div></article>")
+            content = f"<section class='admin-top'><div><span class='eyebrow'>YÖNETİM</span><h1>Özel Siparişler</h1><p>Yeni talepleri inceleyin, fiyat ve hazırlık süresi tanımlayın.</p></div>{admin_nav('orders')}</section><div class='admin-orders'>{''.join(blocks) or '<p class=empty>Henüz özel sipariş yok.</p>'}</div>"
+            return self.send_html(render("Yönetim · Siparişler", content))
+        if path == "/atolye-yonetim-8f31/products":
+            with connect() as c: rows = c.execute("SELECT * FROM products WHERE archived=0 ORDER BY featured DESC,id").fetchall()
+            listing_rows = []
+            with connect() as c:
+                for p in rows:
+                    likes = c.execute("SELECT COUNT(*) FROM product_likes WHERE product_id=?", (p["id"],)).fetchone()[0]
+                    code_cell = f"<code>{esc(p['code'])}</code> <button type='button' class='copy-code' data-copy='{esc(p['code'])}' title='Eser kodunu kopyala' aria-label='Eser kodunu kopyala'>Kopyala</button>"
+                    state = "Taslak" if p["publish_at"] and p["publish_at"] > date.today().isoformat() else ("Satıldı" if p["sold"] else "Yayında")
+                    sold_button = "Satışa Aç" if p["sold"] else "Satıldı Olarak İşaretle"
+                    listing_rows.append(f"<tr><td>{code_cell}</td><td>{esc(p['title'])}</td><td>{esc(p['size'])}</td><td>{esc(p['category'])}</td><td>{money(p['sale_price'] or p['price'])}</td><td>{likes} ♥</td><td>{esc(product_sections(p))}</td><td>{esc(state)}{(' · '+esc(p['publish_at'])) if p['publish_at'] else ''}</td><td><a href='/atolye-yonetim-8f31/products/{p['id']}'>Düzenle</a> · <form class='inline-form' method='post' action='/atolye-yonetim-8f31/products/{p['id']}/sold'><input type='hidden' name='csrf' value='{csrf}'><button class='text-button'>{sold_button}</button></form> · <form class='inline-form' method='post' action='/atolye-yonetim-8f31/products/{p['id']}/archive'><input type='hidden' name='csrf' value='{csrf}'><button class='text-button'>Arşivle</button></form></td></tr>")
+            listing = "".join(listing_rows)
+            copy_script = "<script>document.querySelectorAll('.copy-code').forEach(function(b){b.addEventListener('click',function(){navigator.clipboard.writeText(b.dataset.copy).then(function(){var old=b.textContent;b.textContent='Kopyalandı';setTimeout(function(){b.textContent=old},1200)})})})</script>"
+            content = f"<section class='admin-top'><div><span class='eyebrow'>KATALOG</span><h1>Tablolar</h1><p>Fiyat, ölçü, kategori, açıklama ve öne çıkarma ayarları.</p></div>{admin_nav('products')}</section><p><a class='button small' href='/atolye-yonetim-8f31/products/new'>+ Yeni Tablo Ekle</a></p><div class='table-wrap'><table><thead><tr><th>Kod</th><th>Eser</th><th>Ölçü</th><th>Kategori</th><th>Fiyat</th><th>Beğeni</th><th>Ana sayfa bölümleri</th><th>Durum / yayın tarihi</th><th>İşlem</th></tr></thead><tbody>{listing}</tbody></table></div><h2>Arşiv</h2><p><a href='/arsiv'>Arşivdeki eserleri görüntüle</a></p>{copy_script}"
+            return self.send_html(render("Yönetim · Tablolar", content))
+        if path == "/atolye-yonetim-8f31/products/new" or re.fullmatch(r"/atolye-yonetim-8f31/products/\d+", path):
+            product = None
+            if path != "/atolye-yonetim-8f31/products/new":
+                with connect() as c: product = c.execute("SELECT * FROM products WHERE id=?", (int(path.rsplit('/',1)[-1]),)).fetchone()
+                if not product: return self.send_error(404)
+            val = lambda key, default="": product[key] if product else default
+            size_match = re.match(r"\s*(\d+)\s*[x×]\s*(\d+)\s*(.*)", str(val("size", "")), re.I)
+            width_val, height_val, unit_val = (size_match.group(1), size_match.group(2), size_match.group(3).strip() or "cm") if size_match else ("", "", "cm")
+            cats = [x.strip() for x in settings().get("categories", "").split(",") if x.strip()]
+            if product and product["category"] and product["category"] not in cats: cats.append(product["category"])
+            if not product:
+                with connect() as c:
+                    while True:
+                        code = "PB-" + str(secrets.randbelow(900) + 100)
+                        if not c.execute("SELECT 1 FROM products WHERE code=?", (code,)).fetchone(): break
+            else:
+                code = product["code"]
+            code_field = f"<label>Eser kodu<div class='code-input-row'><input name='code' value='{esc(code)}' required><button type='button' class='copy-code' data-copy='{esc(code)}'>Kopyala</button></div></label>"
+            category_checks = "".join(f"<label><input type='checkbox' name='category_choice' value='{esc(x)}' {'checked' if product and product['category']==x else ''}>{esc(x)}</label>" for x in cats)
+            featured = "checked" if product and product["featured"] else ""
+            sold = "checked" if product and product["sold"] else ""
+            show_new = "checked" if product and product["show_new"] else ""
+            show_collections = "checked" if product and product["show_collections"] else ""
+            show_curated = "checked" if product and product["show_curated"] else ""
+            section_choices = f"<fieldset class='section-choice span-2'><legend>Ana sayfada hangi bölümlerde görünsün?</legend><p>En az bir bölüm seçin; aynı tabloyu birden fazla bölümde gösterebilirsiniz.</p><div class='section-checks'><label><input type='checkbox' name='show_new' value='1' {show_new}> Yeni Gelenler</label><label><input type='checkbox' name='show_collections' value='1' {show_collections}> Koleksiyonlar</label><label><input type='checkbox' name='show_curated' value='1' {show_curated}> Sanatçının Seçkisi</label></div></fieldset>"
+            size_fields = f"<fieldset class='span-2 size-choice'><legend>Tablo ölçüsü</legend><label>Genişlik<input type='number' name='width' min='1' max='500' value='{esc(width_val)}' required></label><span class='size-x'>×</span><label>Yükseklik<input type='number' name='height' min='1' max='500' value='{esc(height_val)}' required></label><label>Birim<select name='size_unit'><option {'selected' if unit_val=='cm' else ''}>cm</option><option {'selected' if unit_val=='mm' else ''}>mm</option><option {'selected' if unit_val=='inç' else ''}>inç</option></select></label></fieldset>"
+            category_choices = f"<fieldset class='span-2 category-checks'><legend>Kategori seçin</legend>{category_checks or '<small>Önce Ayarlar bölümünden kategori ekleyin.</small>'}</fieldset>"
+            publish_at = val("publish_at", "")
+            content = f"<section class='admin-top'><div><span class='eyebrow'>KATALOG</span><h1>{'Tabloyu Düzenle' if product else 'Yeni Tablo Ekle'}</h1></div>{admin_nav('products')}</section><section class='form-card admin-form'><form method='post' enctype='multipart/form-data' action='/atolye-yonetim-8f31/products/save'><input type='hidden' name='csrf' value='{csrf}'><input type='hidden' name='id' value='{esc(val('id'))}'><div class='form-grid'>{code_field}{input_field('Eser adı', 'title', val('title'), required=True)}{size_fields}{category_choices}{input_field('Liste fiyatı (₺)', 'price', val('price'), 'number', True, "min='0'")}{input_field('İndirimli fiyat (₺, isteğe bağlı)', 'sale_price', val('sale_price') or '', 'number', False, "min='0'")}{input_field('Yayın tarihi (boş bırakılırsa hemen yayınlanır)', 'publish_at', publish_at, 'date')}{input_field('WhatsApp bağlantısı (isteğe bağlı)', 'whatsapp_url', val('whatsapp_url'), 'url', False, "placeholder='https://wa.me/...' class='span-2'")}{input_field('Açıklama', 'description', val('description'), 'textarea', False, "rows='4' class='span-2'")}<label class='span-2'>Eser görseli<input type='file' name='image' accept='.jpg,.jpeg,.jfif,.png,.webp'><small>JPG, PNG veya WEBP · en fazla 8 MB{(' · Mevcut görsel: '+esc(val('image'))) if product and val('image') else ''}</small></label></div><div class='check-row'><label><input type='checkbox' name='featured' value='1' {featured}> Öne Çıkan Eserler şeridinde göster</label><label><input type='checkbox' name='sold' value='1' {sold}> Satıldı olarak göster</label></div>{section_choices}<button class='button'>Kaydet</button> <a class='button ghost' href='/atolye-yonetim-8f31/products'>İptal</a></form></section><script>document.querySelectorAll('.copy-code').forEach(b=>b.addEventListener('click',()=>navigator.clipboard.writeText(b.dataset.copy)));document.querySelectorAll('.category-checks input').forEach(x=>x.addEventListener('change',()=>{{if(x.checked)document.querySelectorAll('.category-checks input').forEach(y=>{{if(y!==x)y.checked=false}})}}));</script>"
+            return self.send_html(render("Yönetim · Tablo", content))
+        if path == "/atolye-yonetim-8f31/settings":
+            cfg = settings()
+            category_rows = "".join(f"<div class='category-setting-row'><input class='category-setting-input' value='{esc(x)}' maxlength='80' aria-label='Kategori adı'><button type='button' class='button ghost category-remove'>Sil</button></div>" for x in cfg.get("categories", "").split(",") if x.strip())
+            content = f"<section class='admin-top'><div><span class='eyebrow'>SİTE AYARLARI</span><h1>Bağlantılar ve Kategoriler</h1><p>WhatsApp ve sosyal medya bağlantılarını, kategori listesini yönetin.</p></div>{admin_nav('settings')}</section><section class='narrow form-card'><form id='settings-form' method='post' action='/atolye-yonetim-8f31/settings'><input type='hidden' name='csrf' value='{csrf}'>{input_field('Atölye adı', 'site_name', cfg.get('site_name'), required=True)}{input_field('WhatsApp bağlantısı', 'whatsapp_url', cfg.get('whatsapp_url'), 'url', False, "placeholder='https://wa.me/905...' ")}{input_field('Instagram URL', 'instagram_url', cfg.get('instagram_url'), 'url')}{input_field('TikTok URL', 'tiktok_url', cfg.get('tiktok_url'), 'url')}{input_field('Telegram URL', 'telegram_url', cfg.get('telegram_url'), 'url')}<fieldset class='category-manager'><legend>Kategoriler</legend><div id='category-setting-list'>{category_rows}</div><button type='button' class='button ghost' id='category-add'>+ Kategori Ekle</button><input type='hidden' name='categories' id='categories-value'></fieldset><button class='button wide'>Ayarları Kaydet</button></form></section><script src='/static/category-manager.js' defer></script>"
+            return self.send_html(render("Yönetim · Ayarlar", content))
+        return self.send_error(404)
+
+    def do_POST(self):
+        path = urlparse(self.path).path
+        if path == "/api/likes":
+            length = int(self.headers.get("Content-Length", "0"))
+            if length > 2048:
+                return self.send_json({"error": "İstek çok büyük."}, 413)
+            try:
+                data = json.loads(self.rfile.read(length).decode("utf-8"))
+                code = str(data.get("code", "")).strip()[:64]
+                visitor = str(data.get("visitor", ""))
+                liked = data.get("liked")
+                if not code or not re.fullmatch(r"[a-f0-9-]{16,64}", visitor) or not isinstance(liked, bool):
+                    return self.send_json({"error": "Beğeni bilgisi geçersiz."}, 400)
+                with connect() as c:
+                    product = c.execute("SELECT id FROM products WHERE code=? AND archived=0", (code,)).fetchone()
+                    if not product:
+                        return self.send_json({"error": "Eser bulunamadı."}, 404)
+                    if liked:
+                        c.execute("INSERT OR IGNORE INTO product_likes(product_id,visitor_id) VALUES(?,?)", (product["id"], visitor))
+                    else:
+                        c.execute("DELETE FROM product_likes WHERE product_id=? AND visitor_id=?", (product["id"], visitor))
+                    count = c.execute("SELECT COUNT(*) FROM product_likes WHERE product_id=?", (product["id"],)).fetchone()[0]
+                return self.send_json({"code": code, "count": count, "liked": liked})
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+                return self.send_json({"error": "İstek okunamadı."}, 400)
+        try:
+            fields, files = self.parse_form()
+        except ValueError as e:
+            return self.send_html(render("İstek Hatası", f"<section class='narrow form-card'><h1>İşlem tamamlanamadı</h1><p>{esc(e)}</p><a href='/'>Ana sayfaya dön</a></section>"), 400)
+        if path == "/atolye-yonetim-8f31/setup":
+            with connect() as c: exists = c.execute("SELECT 1 FROM admin WHERE id=1").fetchone()
+            pw = fields.get("password", "")
+            if exists: return self.redirect("/atolye-yonetim-8f31/login")
+            if len(pw) < 10 or pw != fields.get("confirm"):
+                return self.send_html(render("İlk Kurulum", "<section class='narrow form-card'><h1>Parolalar eşleşmiyor</h1><p>En az 10 karakterli, aynı parolayı tekrar girin.</p><a href='/atolye-yonetim-8f31/setup'>Geri dön</a></section>"), 400)
+            salt = secrets.token_bytes(16)
+            digest = hashlib.pbkdf2_hmac("sha256", pw.encode(), salt, 310000)
+            stored = base64.b64encode(salt + digest).decode()
+            with connect() as c: c.execute("INSERT INTO admin(id,password_hash) VALUES(1,?)", (stored,))
+            return self.redirect("/atolye-yonetim-8f31/login")
+        if path == "/atolye-yonetim-8f31/login":
+            with connect() as c: row = c.execute("SELECT password_hash FROM admin WHERE id=1").fetchone()
+            if row:
+                try:
+                    raw = base64.b64decode(row["password_hash"])
+                    digest = hashlib.pbkdf2_hmac("sha256", fields.get("password", "").encode(), raw[:16], 310000)
+                    if hmac.compare_digest(raw[16:], digest):
+                        csrf = secrets.token_urlsafe(24)
+                        with connect() as c: c.execute("INSERT OR REPLACE INTO settings(key,value) VALUES('csrf_token',?)", (csrf,))
+                        payload = base64.urlsafe_b64encode(json.dumps({"id":1,"csrf":csrf,"exp":time.time()+86400*7}).encode()).decode().rstrip("=")
+                        sig = hmac.new(settings()["session_secret"].encode(), payload.encode(), hashlib.sha256).hexdigest()
+                        return self.redirect("/atolye-yonetim-8f31/orders", [("Set-Cookie", f"gallery_admin={payload}.{sig}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800")])
+                except Exception: pass
+            return self.send_html(render("Giriş Hatası", "<section class='narrow form-card'><h1>Parola hatalı</h1><p>Yönetici parolasını kontrol edip yeniden deneyin.</p><a href='/atolye-yonetim-8f31/login'>Geri dön</a></section>"), 401)
+        if path == "/ozel-siparis":
+            try:
+                img = self.upload_file(files.get("image"), "requests", "request-")
+                if not img: raise ValueError("Bir referans görseli seçin.")
+                note = fields.get("note", "").strip()[:2000]
+                first_name = fields.get("first_name", "").strip()[:80]
+                last_name = fields.get("last_name", "").strip()[:80]
+                name = (first_name + " " + last_name).strip()
+                dial_code = re.sub(r"[^0-9+]", "", fields.get("dial_code", ""))[:6]
+                phone = re.sub(r"\D", "", fields.get("phone_number", ""))[:18]
+                contact = (dial_code + " " + phone).strip()
+                address = fields.get("address", "").strip()[:240]
+                city = fields.get("city", "").strip()[:100]
+                country = fields.get("country", "").strip()[:100]
+                postal_code = fields.get("postal_code", "").strip()[:24]
+                if not first_name or not last_name or not dial_code.startswith("+") or len(phone) < 7: raise ValueError("Ad, soyad ve geçerli telefon bilgisi gerekli.")
+                if not address or not city or not country or not postal_code: raise ValueError("Adres, şehir, ülke ve posta kodu bilgileri gerekli.")
+                ref = "PB-" + secrets.token_hex(4).upper()
+                with connect() as c:
+                    while c.execute("SELECT 1 FROM custom_orders WHERE ref=?", (ref,)).fetchone(): ref = "PB-" + secrets.token_hex(4).upper()
+                    c.execute("INSERT INTO custom_orders(ref,image,note,customer_name,contact,first_name,last_name,address,city,country,postal_code) VALUES(?,?,?,?,?,?,?,?,?,?,?)", (ref,img,note,name,contact,first_name,last_name,address,city,country,postal_code))
+                content = f"<section class='page-intro'><span class='eyebrow'>TALEBİNİZ ALINDI</span><h1>Özel sipariş talebiniz oluşturuldu</h1><p>Bu referans kodunu saklayın. Fiyat ve tahmini süre hazırlandığında kodunuzla sorgulayabilirsiniz.</p></section><section class='narrow form-card center'><span class='reference-code'>{esc(ref)}</span><p>Referans kodunuz</p><a class='button' href='/siparis-sorgula?kod={quote(ref)}'>Siparişimi Sorgula</a></section>"
+                return self.send_html(render("Talep Oluşturuldu", content))
+            except ValueError as e:
+                return self.send_html(render("Özel Sipariş", f"<section class='narrow form-card'><h1>Talep oluşturulamadı</h1><p>{esc(e)}</p><a href='/ozel-siparis'>Geri dön</a></section>"), 400)
+        if path.startswith("/siparis-sorgula/") and path.endswith(("/kabul", "/reddet")):
+            action = path.rsplit("/", 1)[-1]
+            ref = path.split("/")[-2].upper()
+            with connect() as c:
+                row = c.execute("SELECT * FROM custom_orders WHERE ref=?", (ref,)).fetchone()
+                if row and row["status"] == "quoted":
+                    status = "accepted" if action == "kabul" else "declined"
+                    c.execute("UPDATE custom_orders SET status=?,updated_at=CURRENT_TIMESTAMP WHERE ref=?", (status, ref))
+            return self.redirect("/siparis-sorgula?kod=" + quote(ref))
+        if path.startswith("/siparis-sorgula/") and path.endswith("/counteroffer"):
+            ref = path.split("/")[-2].upper()
+            try:
+                price = int(fields.get("counter_price", ""))
+                note = fields.get("counter_note", "").strip()[:500]
+                if price < 1: raise ValueError
+            except ValueError:
+                return self.send_error(400, "Geçerli bir fiyat girin.")
+            with connect() as c:
+                c.execute("UPDATE custom_orders SET status='countered',counter_price=?,counter_note=?,updated_at=CURRENT_TIMESTAMP WHERE ref=? AND status='quoted'", (price,note,ref))
+            return self.redirect("/siparis-sorgula?kod=" + quote(ref))
+        if path.startswith("/atolye-yonetim-8f31/"):
+            admin = self.get_admin()
+            if not admin: return self.redirect("/atolye-yonetim-8f31/login")
+            if not self.csrf_ok(fields): return self.send_error(403, "İstek doğrulanamadı. Sayfayı yenileyip tekrar deneyin.")
+        if path.startswith("/atolye-yonetim-8f31/orders/") and path.endswith("/quote"):
+            ref = path.split("/")[-2].upper()
+            try: price, days = int(fields.get("price", "")), int(fields.get("days", ""))
+            except ValueError: return self.send_error(400, "Fiyat ve süre sayı olmalı.")
+            if price < 1 or days < 1: return self.send_error(400, "Fiyat ve süre pozitif olmalı.")
+            with connect() as c: c.execute("UPDATE custom_orders SET status='quoted',offered_price=?,offered_days=?,counter_price=NULL,counter_note='',updated_at=CURRENT_TIMESTAMP WHERE ref=? AND status IN ('new','quoted','countered')", (price, days, ref))
+            return self.redirect("/atolye-yonetim-8f31/orders")
+        if path == "/atolye-yonetim-8f31/products/save":
+            try:
+                pid = int(fields.get("id") or 0)
+                code = fields.get("code", "").strip().upper()[:30]
+                title = fields.get("title", "").strip()[:120]
+                width = int(fields.get("width", "0"))
+                height = int(fields.get("height", "0"))
+                unit = fields.get("size_unit", "cm").strip()[:8]
+                size = f"{width}x{height} {unit}" if width > 0 and height > 0 else ""
+                category = fields.get("category_choice", "").strip()[:80]
+                publish_at = fields.get("publish_at", "").strip()
+                if publish_at and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", publish_at): raise ValueError("Yayın tarihi geçerli değil.")
+                price = int(fields.get("price", "0"))
+                sale = int(fields.get("sale_price")) if fields.get("sale_price", "").strip() else None
+                desc = fields.get("description", "").strip()[:1500]
+                wa = safe_url(fields.get("whatsapp_url", ""))
+                if not code or not title or not size or not category or price < 0: raise ValueError("Kod, ad, ölçü, kategori ve geçerli bir fiyat girin.")
+                image = self.upload_file(files.get("image"), "works", "work-")
+                featured, sold = int(fields.get("featured") == "1"), int(fields.get("sold") == "1")
+                show_new = int(fields.get("show_new") == "1")
+                show_collections = int(fields.get("show_collections") == "1")
+                show_curated = int(fields.get("show_curated") == "1")
+                if not (show_new or show_collections or show_curated): raise ValueError("Tablonun görüneceği en az bir ana sayfa bölümü seçin.")
+                with connect() as c:
+                    if pid:
+                        old = c.execute("SELECT image FROM products WHERE id=?", (pid,)).fetchone()
+                        if not old: return self.send_error(404)
+                        image = image or old["image"]
+                        c.execute("UPDATE products SET code=?,title=?,size=?,price=?,sale_price=?,category=?,description=?,image=?,whatsapp_url=?,featured=?,sold=?,show_new=?,show_collections=?,show_curated=?,publish_at=? WHERE id=?", (code,title,size,price,sale,category,desc,image,wa,featured,sold,show_new,show_collections,show_curated,publish_at,pid))
+                    else:
+                        c.execute("INSERT INTO products(code,title,size,price,sale_price,category,description,image,whatsapp_url,featured,sold,show_new,show_collections,show_curated,publish_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (code,title,size,price,sale,category,desc,image,wa,featured,sold,show_new,show_collections,show_curated,publish_at))
+                return self.redirect("/atolye-yonetim-8f31/products")
+            except (ValueError, sqlite3.IntegrityError) as e:
+                return self.send_html(render("Tablo Kaydedilemedi", f"<section class='narrow form-card'><h1>Tablo kaydedilemedi</h1><p>{esc(e) or 'Eser kodu başka bir tabloda kullanılıyor.'}</p><a href='/atolye-yonetim-8f31/products'>Tablolara dön</a></section>"), 400)
+        archive = re.fullmatch(r"/atolye-yonetim-8f31/products/(\d+)/archive", path)
+        if archive:
+            with connect() as c: c.execute("UPDATE products SET archived=1 WHERE id=?", (int(archive.group(1)),))
+            return self.redirect("/atolye-yonetim-8f31/products")
+        mark_sold = re.fullmatch(r"/atolye-yonetim-8f31/products/(\d+)/sold", path)
+        if mark_sold:
+            with connect() as c: c.execute("UPDATE products SET sold=CASE sold WHEN 1 THEN 0 ELSE 1 END WHERE id=?", (int(mark_sold.group(1)),))
+            return self.redirect("/atolye-yonetim-8f31/products")
+        if path == "/atolye-yonetim-8f31/settings":
+            allowed = ("site_name", "whatsapp_url", "instagram_url", "tiktok_url", "telegram_url")
+            with connect() as c:
+                for key in allowed:
+                    val = fields.get(key, "").strip()
+                    if key.endswith("_url"): val = safe_url(val)
+                    c.execute("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)", (key,val[:500]))
+                categories = ", ".join(dict.fromkeys(x.strip()[:80] for x in fields.get("categories", "").split(",") if x.strip()))
+                c.execute("INSERT OR REPLACE INTO settings(key,value) VALUES('categories',?)", (categories,))
+            return self.redirect("/atolye-yonetim-8f31/settings")
+        return self.send_error(404)
+
+
+def admin_nav(active):
+    links = (("orders", "Özel Siparişler", "/atolye-yonetim-8f31/orders"), ("products", "Tablolar", "/atolye-yonetim-8f31/products"), ("settings", "Site Ayarları", "/atolye-yonetim-8f31/settings"))
+    return "<nav class='admin-nav'>" + "".join(f"<a class='{'active' if key==active else ''}' href='{url}'>{label}</a>" for key,label,url in links) + "<a href='/atolye-yonetim-8f31/logout'>Çıkış</a></nav>"
+
+
+if __name__ == "__main__":
+    init_db()
+    host = os.environ.get("GALLERY_HOST", "127.0.0.1")
+    port = int(os.environ.get("GALLERY_PORT", "8000"))
+    print(f"Sanat Atölyesi is running at http://{host}:{port}")
+    print("First visit: /atolye-yonetim-8f31/setup to create the administrator password.")
+    ThreadingHTTPServer((host, port), SiteHandler).serve_forever()
